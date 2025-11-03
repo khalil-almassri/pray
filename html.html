@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayer Times</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            left: -150px;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            max-width: 550px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .mosque-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .current-time {
+            font-size: 3.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 20px 0;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .location {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #555;
+            font-size: 1.15em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .location .icon {
+            font-size: 1.3em;
+        }
+
+        .date {
+            color: #777;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .hijri-date {
+            background: linear-gradient(135deg, #7e8ba3 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.05em;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .prayer-times {
+            margin-top: 30px;
+        }
+
+        .prayer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 25px;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.08) 0%, rgba(42, 82, 152, 0.08) 100%);
+            border-radius: 18px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 5px solid #2a5298;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prayer-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .prayer-item:hover::before {
+            left: 100%;
+        }
+
+        .prayer-item:hover {
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(42, 82, 152, 0.25);
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.12) 0%, rgba(42, 82, 152, 0.12) 100%);
+        }
+
+        .prayer-item.active {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-left: 5px solid #fff;
+            transform: scale(1.04);
+            box-shadow: 0 10px 30px rgba(30, 60, 114, 0.4);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 10px 30px rgba(30, 60, 114, 0.4); }
+            50% { box-shadow: 0 10px 40px rgba(30, 60, 114, 0.6); }
+        }
+
+        .prayer-item.sunrise {
+            background: linear-gradient(135deg, #ffd89b 0%, #f9a825 100%);
+            color: white;
+            border-left: 5px solid #fff;
+            box-shadow: 0 5px 20px rgba(255, 216, 155, 0.3);
+        }
+
+        .prayer-item.sunrise:hover {
+            box-shadow: 0 8px 30px rgba(255, 216, 155, 0.5);
+        }
+
+        .prayer-name {
+            font-size: 1.35em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .prayer-icon {
+            font-size: 1.6em;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .prayer-time {
+            font-size: 1.5em;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #2a5298;
+            font-size: 1.3em;
+            padding: 20px;
+        }
+
+        .error {
+            text-align: center;
+            color: #e74c3c;
+            padding: 20px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .refresh-btn {
+            display: block;
+            margin: 25px auto 0;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(42, 82, 152, 0.3);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(42, 82, 152, 0.5);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .next-prayer {
+            text-align: center;
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.1) 0%, rgba(42, 82, 152, 0.1) 100%);
+            border-radius: 15px;
+            color: #555;
+            font-size: 1.05em;
+            border: 2px solid rgba(42, 82, 152, 0.2);
+        }
+
+        .next-prayer strong {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.25em;
+            font-weight: 700;
+        }
+
+        .location-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: rgba(42, 82, 152, 0.1);
+        }
+
+        .location-change:hover {
+            background: rgba(42, 82, 152, 0.2);
+            transform: scale(1.05);
+        }
+
+        .change-location-btn {
+            background: none;
+            border: none;
+            color: #2a5298;
+            cursor: pointer;
+            font-size: 0.9em;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .change-location-btn:hover {
+            background: rgba(42, 82, 152, 0.15);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            color: #777;
+            font-size: 0.95em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(42, 82, 152, 0.4);
+        }
+
+        .modal-btn.secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .use-current-location {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .use-current-location button {
+            background: none;
+            border: 2px solid #2a5298;
+            color: #2a5298;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .use-current-location button:hover {
+            background: #2a5298;
+            color: white;
+        }
+
+        .coordinates-display {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .current-time {
+                font-size: 2.8em;
+            }
+
+            .prayer-name {
+                font-size: 1.15em;
+            }
+
+            .prayer-time {
+                font-size: 1.25em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="mosque-icon">🕌</div>
+            <h1>Prayer Times</h1>
+            <div class="current-time" id="currentTime">00:00:00</div>
+            <div class="location" id="location">
+                <div class="location-change" onclick="openLocationModal()">
+                    <span class="icon">📍</span>
+                    <span id="city">Loading...</span>
+                    <button class="change-location-btn">Change</button>
+                </div>
+            </div>
+            <div class="coordinates-display" id="coordinates"></div>
+            <div class="date" id="date"></div>
+            <div class="hijri-date" id="hijriDate"></div>
+        </div>
+
+        <div id="content">
+            <div class="loading" id="loadingText">Loading prayer times...</div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadPrayerTimes()">
+            <span id="refreshText">🔄 Refresh Times</span>
+        </button>
+    </div>
+
+    <!-- Location Modal -->
+    <div id="locationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📍 Change Location</h2>
+                <p>Enter city name or coordinates</p>
+            </div>
+            
+            <div class="input-group">
+                <label for="cityInput">City Name</label>
+                <input type="text" id="cityInput" placeholder="e.g., New York, London, Dubai">
+            </div>
+
+            <div style="text-align: center; margin: 20px 0; color: #999;">OR</div>
+
+            <div class="input-group">
+                <label for="latInput">Latitude</label>
+                <input type="number" id="latInput" step="0.0001" placeholder="e.g., 40.7128">
+            </div>
+
+            <div class="input-group">
+                <label for="lonInput">Longitude</label>
+                <input type="number" id="lonInput" step="0.0001" placeholder="e.g., -74.0060">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeLocationModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="applyLocation()">Apply</button>
+            </div>
+
+            <div class="use-current-location">
+                <button onclick="useCurrentLocation()">📍 Use Current Location</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLocation = { lat: null, lon: null };
+        let prayerData = null;
+        let hijriDateData = null;
+        let currentCityName = '';
+
+        function openLocationModal() {
+            document.getElementById('locationModal').classList.add('active');
+        }
+
+        function closeLocationModal() {
+            document.getElementById('locationModal').classList.remove('active');
+        }
+
+        async function useCurrentLocation() {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        timeout: 10000
+                    });
+                });
+                currentLocation.lat = position.coords.latitude;
+                currentLocation.lon = position.coords.longitude;
+                currentCityName = 'Your Location';
+                
+                document.getElementById('city').textContent = currentCityName;
+                updateCoordinatesDisplay();
+                
+                document.getElementById('latInput').value = '';
+                document.getElementById('lonInput').value = '';
+                document.getElementById('cityInput').value = '';
+                
+                closeLocationModal();
+                await loadPrayerTimes();
+            } catch (error) {
+                alert('Unable to get your current location. Please check your browser permissions.');
+            }
+        }
+
+        async function applyLocation() {
+            const cityName = document.getElementById('cityInput').value.trim();
+            const lat = document.getElementById('latInput').value.trim();
+            const lon = document.getElementById('lonInput').value.trim();
+
+            if (cityName) {
+                try {
+                    const response = await fetch(
+                        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`
+                    );
+                    const data = await response.json();
+                    
+                    if (data.results && data.results.length > 0) {
+                        currentLocation.lat = data.results[0].latitude;
+                        currentLocation.lon = data.results[0].longitude;
+                        currentCityName = data.results[0].name;
+                        if (data.results[0].country) {
+                            currentCityName += ', ' + data.results[0].country;
+                        }
+                        
+                        document.getElementById('city').textContent = currentCityName;
+                        updateCoordinatesDisplay();
+                        
+                        closeLocationModal();
+                        await loadPrayerTimes();
+                    } else {
+                        alert('City not found. Please try another city or use coordinates.');
+                    }
+                } catch (error) {
+                    alert('Error searching for city. Please try coordinates instead.');
+                }
+            } else if (lat && lon) {
+                const latitude = parseFloat(lat);
+                const longitude = parseFloat(lon);
+                
+                if (latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180) {
+                    currentLocation.lat = latitude;
+                    currentLocation.lon = longitude;
+                    currentCityName = `Custom Location`;
+                    
+                    document.getElementById('city').textContent = currentCityName;
+                    updateCoordinatesDisplay();
+                    
+                    closeLocationModal();
+                    await loadPrayerTimes();
+                } else {
+                    alert('Invalid coordinates. Latitude must be between -90 and 90, longitude between -180 and 180.');
+                }
+            } else {
+                alert('Please enter either a city name or both latitude and longitude.');
+            }
+        }
+
+        function updateCoordinatesDisplay() {
+            if (currentLocation.lat && currentLocation.lon) {
+                document.getElementById('coordinates').textContent = 
+                    `Lat: ${currentLocation.lat.toFixed(4)}, Lon: ${currentLocation.lon.toFixed(4)}`;
+            }
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        function updateHijriDate() {
+            if (hijriDateData && hijriDateData.data && hijriDateData.data.hijri) {
+                const hijri = hijriDateData.data.hijri;
+                document.getElementById('hijriDate').textContent = 
+                    `${hijri.day} ${hijri.month.en} ${hijri.year} AH`;
+            }
+        }
+
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const h = parseInt(hours);
+            const m = minutes;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const displayHours = h % 12 || 12;
+            return `${displayHours}:${m} ${ampm}`;
+        }
+
+        function getCurrentPrayer(times) {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+            const prayerMinutes = prayers.map(p => {
+                const [h, m] = times[p].split(':').map(Number);
+                return h * 60 + m;
+            });
+
+            for (let i = 0; i < prayers.length; i++) {
+                const nextIndex = (i + 1) % prayers.length;
+                const start = prayerMinutes[i];
+                const end = prayerMinutes[nextIndex];
+                
+                if (end > start) {
+                    if (currentMinutes >= start && currentMinutes < end) {
+                        return prayers[i];
+                    }
+                } else {
+                    if (currentMinutes >= start || currentMinutes < end) {
+                        return prayers[i];
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function getNextPrayer(times) {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+            const prayerMinutes = prayers.map(p => {
+                const [h, m] = times[p].split(':').map(Number);
+                return h * 60 + m;
+            });
+
+            for (let i = 0; i < prayers.length; i++) {
+                if (prayerMinutes[i] > currentMinutes) {
+                    const diff = prayerMinutes[i] - currentMinutes;
+                    const hours = Math.floor(diff / 60);
+                    const minutes = diff % 60;
+                    return {
+                        name: prayers[i],
+                        time: hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
+                    };
+                }
+            }
+            
+            const diff = (1440 - currentMinutes) + prayerMinutes[0];
+            const hours = Math.floor(diff / 60);
+            const minutes = diff % 60;
+            return {
+                name: 'Fajr',
+                time: hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
+            };
+        }
+
+        function displayPrayerTimes(data) {
+            prayerData = data;
+            const times = data.data.timings;
+            const currentPrayer = getCurrentPrayer(times);
+            const nextPrayer = getNextPrayer(times);
+            
+            const prayers = [
+                { name: 'Fajr', icon: '🌅', time: times.Fajr },
+                { name: 'Sunrise', icon: '☀️', time: times.Sunrise, isSunrise: true },
+                { name: 'Dhuhr', icon: '🌞', time: times.Dhuhr },
+                { name: 'Asr', icon: '🌤️', time: times.Asr },
+                { name: 'Maghrib', icon: '🌆', time: times.Maghrib },
+                { name: 'Isha', icon: '🌙', time: times.Isha }
+            ];
+
+            let html = '<div class="prayer-times">';
+            prayers.forEach(prayer => {
+                const isActive = prayer.name === currentPrayer ? 'active' : '';
+                const sunriseClass = prayer.isSunrise ? 'sunrise' : '';
+                html += `
+                    <div class="prayer-item ${isActive} ${sunriseClass}">
+                        <div class="prayer-name">
+                            <span class="prayer-icon">${prayer.icon}</span>
+                            ${prayer.name}
+                        </div>
+                        <div class="prayer-time">${formatTime(prayer.time)}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            html += `
+                <div class="next-prayer">
+                    ⏰ Next prayer: <strong>${nextPrayer.name}</strong> in ${nextPrayer.time}
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        async function loadPrayerTimes() {
+            try {
+                if (!currentLocation.lat) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                timeout: 10000
+                            });
+                        });
+                        currentLocation.lat = position.coords.latitude;
+                        currentLocation.lon = position.coords.longitude;
+                    } catch (geoError) {
+                        console.log('Geolocation failed, using default location');
+                        currentLocation.lat = 21.4225;
+                        currentLocation.lon = 39.8262;
+                        document.getElementById('city').textContent = 'Mecca (Default)';
+                    }
+                }
+
+                const date = new Date();
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                
+                const response = await fetch(
+                    `https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=${currentLocation.lat}&longitude=${currentLocation.lon}&method=4`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+                
+                const data = await response.json();
+
+                if (!data || !data.data || !data.data.timings) {
+                    throw new Error('Invalid API response');
+                }
+
+                if (currentCityName) {
+                    document.getElementById('city').textContent = currentCityName;
+                } else if (document.getElementById('city').textContent !== 'Mecca (Default)') {
+                    document.getElementById('city').textContent = 
+                        data.data.meta.timezone || 'Your Location';
+                }
+                
+                updateCoordinatesDisplay();
+                
+                hijriDateData = data;
+                updateHijriDate();
+                
+                displayPrayerTimes(data);
+                
+            } catch (error) {
+                console.error('Error loading prayer times:', error);
+                document.getElementById('content').innerHTML = 
+                    `<div class="error">Unable to load prayer times. Please try again later.<br><small>${error.message}</small></div>`;
+            }
+        }
+
+        updateDate();
+        loadPrayerTimes();
+        
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        setInterval(() => {
+            updateDate();
+            if (currentLocation.lat) {
+                loadPrayerTimes();
+            }
+        }, 60000);
+
+        // Close modal when clicking outside
+        document.getElementById('locationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLocationModal();
+            }
+        });
+    </script>
+</body>
+</html>
